@@ -1,0 +1,8 @@
+# Session scratch and agent working files
+.ai/
+
+# Fallback plugin state and config when Herdr's env vars are absent
+.state/
+.config/
+
+.DS_Store

@@ -1,0 +1,41 @@
+# config.example.toml
+# Reference configuration for the cc-blurb Herdr plugin.
+# Responsibilities:
+#   - Document every supported key and its default value.
+#   - Serve as the file to copy into the plugin config directory.
+#
+# Copy to the path printed by `herdr plugin config-dir eighteyes.cc-blurb`
+# as `config.toml`. Every key is optional; omitted keys keep the default below.
+
+# Canonical agent ids to label. Empty list means every detected agent.
+agents = ["claude"]
+
+# Exact stripped titles treated as carrying no information.
+ignore_titles = ["Claude Code", "Codex", "opencode"]
+
+# Regexes for titles that are shell chrome rather than agent status.
+ignore_patterns = ['^[\w.-]+@[\w.-]+:', '^~?/', '^\$ ']
+
+# Keep the last meaningful label when the current title is ignored.
+# false reverts the pane to its default name whenever the agent goes idle.
+retain_on_ignore = true
+
+# Adopt panes that already carry a label this plugin did not set.
+# Leave false so manual `herdr pane rename` labels are never clobbered.
+claim_foreign_labels = false
+
+# Drop the label when the agent exits the pane.
+clear_on_agent_exit = false
+
+# Label template. Tokens: {title} {agent} {status} {cwd_base}
+# Example: "{cwd_base} · {title}"
+template = "{title}"
+
+# Truncate longer labels with an ellipsis. 0 disables truncation.
+max_length = 64
+
+# Seconds to coalesce rapid title changes before applying a label.
+debounce_seconds = 0.35
+
+# Reconnect attempts after the socket drops before the daemon exits.
+reconnect_attempts = 5

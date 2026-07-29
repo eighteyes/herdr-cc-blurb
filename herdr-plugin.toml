@@ -1,0 +1,46 @@
+# herdr-plugin.toml
+# Manifest for the cc-blurb Herdr plugin.
+# Responsibilities:
+#   - Declare plugin identity and minimum Herdr version.
+#   - Register the startup hook that launches the title-sync daemon.
+#   - Register operator actions to resync, start, and stop the daemon.
+
+id = "eighteyes.cc-blurb"
+name = "CC Blurb"
+version = "0.1.0"
+min_herdr_version = "0.7.0"
+description = "Mirror an agent's OSC 0/2 terminal title into its pane label so it shows in the session navigator."
+platforms = ["linux", "macos"]
+
+[[startup]]
+command = ["python3", "bin/blurb-daemon.py", "start"]
+
+[[actions]]
+id = "resync"
+title = "CC Blurb: resync pane labels now"
+contexts = ["workspace"]
+command = ["python3", "bin/blurb-daemon.py", "resync"]
+
+[[actions]]
+id = "start"
+title = "CC Blurb: start the title-sync daemon"
+contexts = ["workspace"]
+command = ["python3", "bin/blurb-daemon.py", "start"]
+
+[[actions]]
+id = "stop"
+title = "CC Blurb: stop the title-sync daemon"
+contexts = ["workspace"]
+command = ["python3", "bin/blurb-daemon.py", "stop"]
+
+[[actions]]
+id = "status"
+title = "CC Blurb: show daemon status"
+contexts = ["workspace"]
+command = ["python3", "bin/blurb-daemon.py", "status"]
+
+[[actions]]
+id = "clear"
+title = "CC Blurb: clear labels this plugin set"
+contexts = ["workspace"]
+command = ["python3", "bin/blurb-daemon.py", "clear"]
