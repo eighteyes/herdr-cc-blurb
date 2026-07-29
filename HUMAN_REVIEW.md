@@ -3,7 +3,7 @@
 ## cc-blurb Herdr plugin — 2026-07-29
 
 Session: `692bbd77-5c7c-494a-ba77-138ab07c3376`
-Commit: none (directory is not a git repository)
+Commit: `9d16a15` on `main`
 
 Mirrors an agent pane's OSC 0/2 terminal title into its Herdr pane label, so the
 title appears in the session navigator (`prefix+g`), which renders pane labels
