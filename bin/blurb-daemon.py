@@ -140,7 +140,14 @@ def call(path, method, params=None, timeout=5.0):
                 break
             buf += chunk
         raw = buf.split(b"\n", 1)[0]
-        return json.loads(raw) if raw.strip() else None
+        if not raw.strip():
+            return None
+        response = json.loads(raw)
+        # An error reply is a well-formed message; callers must not read it as success.
+        if "error" in response or "result" not in response:
+            log("call %s rejected: %s" % (method, json.dumps(response)[:200]))
+            return None
+        return response
     except (OSError, json.JSONDecodeError) as exc:
         log("call %s failed: %s" % (method, exc))
         return None
