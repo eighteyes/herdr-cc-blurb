@@ -23,6 +23,27 @@ herdr plugin action invoke eighteyes.cc-blurb.start
 
 For local development, `herdr plugin link /path/to/herdr-cc-blurb` instead.
 
+## Showing the label in the sidebar
+
+The session navigator picks up pane labels with no further setup. The agent
+sidebar does not: its rows are templated, and the default template does not
+include a label row. Add one in `~/.config/herdr/config.toml`, where the `pane`
+token renders the pane label:
+
+```toml
+[ui.sidebar.agents.rows_by_agent]
+claude = [["state_icon", "workspace", "tab"], ["pane"], ["agent"]]
+```
+
+```shell
+herdr server reload-config
+```
+
+The sidebar also offers a `terminal_title_stripped` token that shows the raw
+title directly, without this plugin. Use that instead if the navigator does not
+matter to you and no template is wanted — it is the simpler option for the
+sidebar alone.
+
 ## What it does
 
 A `[[startup]]` hook launches a daemon that holds one `pane.updated`
