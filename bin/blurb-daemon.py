@@ -12,6 +12,7 @@ Responsibilities:
 """
 
 import errno
+import hashlib
 import json
 import os
 import re
@@ -84,6 +85,26 @@ def config_dir():
     return path
 
 
+def instance_slug():
+    """Identify one Herdr server.
+
+    Each named session runs its own server on its own socket, and pane ids such
+    as `w1:p1` repeat across them. Daemon state is therefore keyed per socket:
+    a single global pidfile would make the second server's startup hook see a
+    live pid, conclude a daemon was already running, and exit.
+    """
+    path = os.path.realpath(socket_path())
+    parent = os.path.basename(os.path.dirname(path)) or "herdr"
+    digest = hashlib.sha1(path.encode()).hexdigest()[:8]
+    return "%s-%s" % (re.sub(r"[^A-Za-z0-9_.-]+", "-", parent), digest)
+
+
+def instance_dir():
+    path = os.path.join(state_dir(), "instances", instance_slug())
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
 def socket_path():
     path = os.environ.get("HERDR_SOCKET_PATH")
     if not path:
@@ -112,7 +133,7 @@ def load_config():
 def log(message):
     line = "%s %s\n" % (time.strftime("%Y-%m-%dT%H:%M:%S"), message)
     try:
-        with open(os.path.join(state_dir(), "blurb.log"), "a") as handle:
+        with open(os.path.join(instance_dir(), "blurb.log"), "a") as handle:
             handle.write(line)
     except OSError:
         pass
@@ -204,7 +225,7 @@ class Client:
 
 
 def owned_path():
-    return os.path.join(state_dir(), "owned.json")
+    return os.path.join(instance_dir(), "owned.json")
 
 
 def load_owned():
@@ -317,7 +338,7 @@ def sweep(path, cfg, owned):
 
 
 def pid_path():
-    return os.path.join(state_dir(), "daemon.pid")
+    return os.path.join(instance_dir(), "daemon.pid")
 
 
 def running_pid():
@@ -443,7 +464,8 @@ def cmd_status(_args):
     print("daemon:  %s" % ("running (pid %d)" % pid if pid else "stopped"))
     print("socket:  %s" % socket_path())
     print("config:  %s" % os.path.join(config_dir(), "config.toml"))
-    print("state:   %s" % state_dir())
+    print("state:   %s" % instance_dir())
+    print("server:  %s" % instance_slug())
     print("agents:  %s" % (", ".join(cfg["agents"]) or "<all>"))
     print("labeled: %d pane(s)" % len(owned))
     for pane_id, label in sorted(owned.items()):

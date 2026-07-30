@@ -70,6 +70,24 @@ python3 /Users/god/projects/ai-jank/herdr-cc-blurb/bin/blurb-daemon.py clear
 python3 /Users/god/projects/ai-jank/herdr-cc-blurb/bin/blurb-daemon.py stop
 ```
 
+### Multi-session check — 2026-07-30
+
+- [ ] Each running session has its own daemon
+
+```shell
+herdr session list
+```
+
+```shell
+ps -eo pid,command | rg '[b]lurb-daemon'
+```
+
+- [ ] A named session other than the current one is labelled
+
+```shell
+HERDR_SOCKET_PATH=~/.config/herdr/sessions/lia-lucid-agents/herdr.sock python3 /Users/god/projects/ai-jank/herdr-cc-blurb/bin/blurb-daemon.py status
+```
+
 ### Notes and open risks
 
 - The Herdr socket API serves one request per connection and closes it. Only

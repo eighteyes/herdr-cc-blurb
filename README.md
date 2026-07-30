@@ -61,6 +61,24 @@ Two behaviours are worth knowing before installing:
   label, the plugin keeps the previous one. Set `retain_on_ignore = false` to
   clear the label on idle instead.
 
+## Named sessions
+
+Each named Herdr session (`herdr --session <name>`) runs its own server on its
+own socket, and one daemon serves one server. Daemon state — pidfile, owned
+labels, log — is therefore keyed per socket under `instances/<server>` in the
+plugin state directory, because pane ids such as `w1:p1` repeat across servers.
+
+The `[[startup]]` hook fires per server, so each session starts its own daemon
+on restore. To start one in a session that is already running:
+
+```shell
+HERDR_SOCKET_PATH=~/.config/herdr/sessions/<name>/herdr.sock \
+  herdr plugin action invoke eighteyes.cc-blurb.start
+```
+
+The same prefix works for `status`, `resync`, and `clear` when inspecting a
+session other than the current one.
+
 ## Configuration
 
 Optional. Copy `config.example.toml` to `config.toml` in the directory printed
