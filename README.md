@@ -32,12 +32,16 @@ token renders the pane label:
 
 ```toml
 [ui.sidebar.agents.rows_by_agent]
-claude = [["state_icon", "workspace", "tab"], ["pane"], ["agent"]]
+claude = [["state_icon", "pane"]]
 ```
 
 ```shell
 herdr server reload-config
 ```
+
+`{cwd_hint}` renders the pane's folder only when it differs from the workspace
+name, so a single row stays readable without repeating what the space row above
+it already says. Use `{cwd_base}` instead to prefix the folder unconditionally.
 
 The sidebar also offers a `terminal_title_stripped` token that shows the raw
 title directly, without this plugin. Use that instead if the navigator does not
@@ -98,7 +102,8 @@ Every key is optional; omitted keys keep their default.
 | `retain_on_ignore` | `true` | Keep the last meaningful label instead of clearing. |
 | `claim_foreign_labels` | `false` | Adopt panes already carrying a label. |
 | `clear_on_agent_exit` | `false` | Drop the label when the agent exits. |
-| `template` | `"{title}"` | Label template. Tokens: `{title}` `{agent}` `{status}` `{cwd_base}`. |
+| `template` | `"{cwd_hint}{title}"` | Label template. Tokens: `{title}` `{agent}` `{status}` `{cwd_base}` `{cwd_hint}`. |
+| `cwd_hint_separator` | `" · "` | Appended to `{cwd_hint}` when it is non-empty. |
 | `max_length` | `64` | Truncate longer labels. `0` disables. |
 | `debounce_seconds` | `0.35` | Coalesce rapid title changes. |
 | `reconnect_attempts` | `5` | Socket reconnects before the daemon exits. |

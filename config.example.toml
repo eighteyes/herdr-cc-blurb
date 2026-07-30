@@ -27,9 +27,14 @@ claim_foreign_labels = false
 # Drop the label when the agent exits the pane.
 clear_on_agent_exit = false
 
-# Label template. Tokens: {title} {agent} {status} {cwd_base}
-# Example: "{cwd_base} · {title}"
-template = "{title}"
+# Label template. Tokens: {title} {agent} {status} {cwd_base} {cwd_hint}
+# {cwd_hint} renders "<folder><separator>" only when the pane's folder differs
+# from its workspace name, and empty otherwise, so a sidebar row showing the
+# space does not repeat the folder.
+template = "{cwd_hint}{title}"
+
+# Separator appended to {cwd_hint} when it is non-empty.
+cwd_hint_separator = " · "
 
 # Truncate longer labels with an ellipsis. 0 disables truncation.
 max_length = 64

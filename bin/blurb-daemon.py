@@ -36,8 +36,12 @@ DEFAULTS = {
     "claim_foreign_labels": False,
     # Drop the label when the agent exits the pane.
     "clear_on_agent_exit": False,
-    # Label template. Tokens: {title} {agent} {status} {cwd_base}
-    "template": "{title}",
+    # Label template. Tokens: {title} {agent} {status} {cwd_base} {cwd_hint}
+    # {cwd_hint} renders "<folder> · " only when the pane's folder differs from
+    # its workspace name, and empty otherwise, so the space row is not repeated.
+    "template": "{cwd_hint}{title}",
+    # Separator appended to {cwd_hint} when it is non-empty.
+    "cwd_hint_separator": " · ",
     # Truncated with an ellipsis beyond this many characters. 0 disables truncation.
     "max_length": 64,
     # Seconds to coalesce rapid title changes before applying a label.
@@ -263,13 +267,35 @@ def title_is_noise(cfg, title):
     return any(rx.search(title) for rx in cfg["_ignore_res"])
 
 
-def render_label(cfg, pane, title):
+_WORKSPACE_LABELS = {"at": 0.0, "by_id": {}}
+
+
+def workspace_labels(path, ttl=10.0):
+    """Workspace id to label, cached briefly. Used to suppress a redundant prefix."""
+    now = time.monotonic()
+    if now - _WORKSPACE_LABELS["at"] < ttl:
+        return _WORKSPACE_LABELS["by_id"]
+    response = call(path, "workspace.list", {})
+    spaces = ((response or {}).get("result") or {}).get("workspaces") or []
+    if response is not None:
+        _WORKSPACE_LABELS["by_id"] = {
+            w.get("workspace_id"): (w.get("label") or "") for w in spaces
+        }
+        _WORKSPACE_LABELS["at"] = now
+    return _WORKSPACE_LABELS["by_id"]
+
+
+def render_label(path, cfg, pane, title):
     cwd = pane.get("foreground_cwd") or pane.get("cwd") or ""
+    cwd_base = os.path.basename(cwd.rstrip("/")) if cwd else ""
+    space = workspace_labels(path).get(pane.get("workspace_id"), "")
+    hint = cwd_base if cwd_base and cwd_base != space else ""
     label = cfg["template"].format(
         title=title,
         agent=pane.get("agent") or "",
         status=pane.get("agent_status") or "",
-        cwd_base=os.path.basename(cwd.rstrip("/")) if cwd else "",
+        cwd_base=cwd_base,
+        cwd_hint=(hint + cfg["cwd_hint_separator"]) if hint else "",
     )
     label = " ".join(label.split())
     limit = cfg["max_length"]
@@ -278,7 +304,7 @@ def render_label(cfg, pane, title):
     return label
 
 
-def desired_label(cfg, pane, owned):
+def desired_label(path, cfg, pane, owned):
     """Return (action, label). action is 'set', 'clear', or 'skip'."""
     pane_id = pane.get("pane_id")
     if not pane_id:
@@ -301,14 +327,14 @@ def desired_label(cfg, pane, owned):
             return "clear", None
         return "skip", None
 
-    label = render_label(cfg, pane, title)
+    label = render_label(path, cfg, pane, title)
     if not label or label == ours == current:
         return "skip", None
     return "set", label
 
 
 def apply_label(path, cfg, pane, owned):
-    action, label = desired_label(cfg, pane, owned)
+    action, label = desired_label(path, cfg, pane, owned)
     if action == "skip":
         return False
     pane_id = pane["pane_id"]
