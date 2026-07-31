@@ -142,3 +142,20 @@ would need rechecking after a Herdr upgrade:
 - `pane.rename` does not emit `pane.updated` and does not bump the pane
   revision, so the daemon's own writes cannot feed back into its subscription.
   If this changes, the daemon could loop.
+
+Further observations from building against the API, useful to anyone writing a
+Herdr plugin:
+
+- The sidebar `pane` row token renders the pane label. There is no built-in
+  token for a pane's working directory, which is why this plugin writes the
+  folder into the label itself.
+- `agent.list` responses omit the `label` field. Use `pane.list` when checking
+  labels; `agent.list` will appear to show none.
+- `tab.create` returns a `TabInfo` carrying no pane identifier. The new tab's
+  first pane must be found by listing panes and filtering on `tab_id`.
+- `config.toml` is global, but each server holds its own loaded copy. After
+  editing it, run `herdr server reload-config` against every running session,
+  not just the focused one.
+- The bundled Claude integration hook reports session identity only, through
+  `pane.report_agent_session`. Agent status comes from screen-manifest
+  detection, not from the hook.
